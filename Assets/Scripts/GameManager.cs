@@ -31,6 +31,31 @@ public class GameManager : MonoBehaviour
         
         _instance = this;
         DontDestroyOnLoad(gameObject);
+        
+        SceneManager.sceneLoaded += OnSceneLoaded;
+    }
+
+    void OnDestroy()
+    {
+        SceneManager.sceneLoaded -= OnSceneLoaded;
+    }
+
+    private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+    {
+        Debug.Log($"<color=cyan>[GameManager]</color> Escena cargada: {scene.name}");
+        
+        Time.timeScale = 1f;
+        
+        if (scene.buildIndex >= 2 && scene.buildIndex <= 5) 
+        {
+            Cursor.lockState = CursorLockMode.Locked;
+            Cursor.visible = false;
+        }
+        else
+        {
+            Cursor.lockState = CursorLockMode.None;
+            Cursor.visible = true;
+        }
     }
 
     public void LoadLevel(int levelIndex)
@@ -48,8 +73,13 @@ public class GameManager : MonoBehaviour
         }
         else
         {
-            LoadMainMenu();
+            LoadWinScene();
         }
+    }
+
+    private void LoadWinScene()
+    {
+        LoadSceneAsync(6);
     }
 
     public void LoadMainMenu()
@@ -67,6 +97,8 @@ public class GameManager : MonoBehaviour
         AsyncOperation loadingOperation = SceneManager.LoadSceneAsync(1);
         yield return new WaitUntil(() => loadingOperation.isDone);
 
+        yield return new WaitForSeconds(0.3f);
+
         AsyncOperation targetOperation = SceneManager.LoadSceneAsync(sceneName);
 
         while (!targetOperation.isDone)
@@ -75,6 +107,8 @@ public class GameManager : MonoBehaviour
             LoadingScreen.Instance?.UpdateProgress(progress);
             yield return null;
         }
+        
+        Time.timeScale = 1f;
     }
 
     private void LoadSceneAsync(int sceneIndex)
@@ -87,6 +121,8 @@ public class GameManager : MonoBehaviour
         AsyncOperation loadingOperation = SceneManager.LoadSceneAsync(1);
         yield return new WaitUntil(() => loadingOperation.isDone);
 
+        yield return new WaitForSeconds(0.3f);
+
         AsyncOperation targetOperation = SceneManager.LoadSceneAsync(sceneIndex);
         
         while (!targetOperation.isDone)
@@ -95,5 +131,7 @@ public class GameManager : MonoBehaviour
             LoadingScreen.Instance?.UpdateProgress(progress);
             yield return null;
         }
+        
+        Time.timeScale = 1f;
     }
 }

@@ -5,7 +5,6 @@ using TMPro;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
-
 public class UIManager : MonoBehaviour
 {
     public static UIManager Instance;
@@ -25,11 +24,7 @@ public class UIManager : MonoBehaviour
     [SerializeField] private Transform inventoryContent; 
     [SerializeField] private GameObject inventoryItemPrefab; 
     
-
-    
     private int coinCount;
-    
-    // private List<PickUpData> inventory = new List<PickUpData>();
     
     private readonly Dictionary<PickUpData, int> inventoryStacks = new();
     private readonly Dictionary<PickUpData, GameObject> inventoryRows = new();
@@ -39,6 +34,18 @@ public class UIManager : MonoBehaviour
         return ItemDataBase.Instance.GetItemByName(itemName);
     }
     
+    private void Awake()
+    {
+        Instance = this;
+    }
+
+    private void OnDestroy()
+    {
+        if (Instance == this)
+        {
+            Instance = null;
+        }
+    }
     
     private void Start()
     {
@@ -71,19 +78,6 @@ public class UIManager : MonoBehaviour
         }
     }
 
-    private void Awake()
-    {
-        if (Instance == null)
-        {
-            Instance = this;
-            DontDestroyOnLoad(gameObject);
-        }
-        else
-        {
-            Destroy(gameObject);
-        }
-    }
-
     private void OnEnable()
     {
         if (GameEventsBehaviour.Instance != null)
@@ -93,8 +87,6 @@ public class UIManager : MonoBehaviour
             GameEventsBehaviour.Instance.OnItemInventoryCollected += AddToInventory;
             GameEventsBehaviour.Instance.OnDoorEntered += UpdateDoorUI;
         }
-
-
     }
 
     private void OnDisable()
@@ -110,7 +102,7 @@ public class UIManager : MonoBehaviour
     
     private void UpdateDoorUI()
     {
-        if (HasItemByName("Key") )
+        if (HasItemByName("Key"))
         {
             if (doorObject) doorObject.SetActive(false);
             if (doorText) doorText.text = string.Empty;
@@ -123,9 +115,9 @@ public class UIManager : MonoBehaviour
         }
         else
         {
-            doorText.gameObject.SetActive(true);
-            if (doorText)
+            if (doorText != null)
             {
+                doorText.gameObject.SetActive(true);
                 doorText.text = "Necesitas una llave para abrir la puerta";
                 StopAllCoroutines(); 
                 StartCoroutine(HideDoorTextAfter(2.5f)); 
@@ -139,7 +131,6 @@ public class UIManager : MonoBehaviour
         if (doorText) doorText.text = string.Empty;
     }
 
-    
     public bool HasItemByName(string itemName)
     {
         foreach (var kvp in inventoryStacks)
@@ -161,7 +152,6 @@ public class UIManager : MonoBehaviour
         return false;
     }
     
-
     private void UpdateCoins()
     {
         int value = HasItemByName("Magnet") ? 2 : 1;
@@ -174,10 +164,11 @@ public class UIManager : MonoBehaviour
             PersistenceManager.Instance.data.coinCount = coinCount;
         }
     }
-
     
     private void UpdateLivesUI(int currentLives, int maxLives)
     {
+        if (livesPanel == null) return;
+
         for (int i = livesPanel.childCount - 1; i >= 0; i--)
         {
             var child = livesPanel.GetChild(i);
@@ -188,13 +179,13 @@ public class UIManager : MonoBehaviour
         {
             if (heartPrefab) Instantiate(heartPrefab, livesPanel);
         }
+        
         if (PersistenceManager.Instance != null)
         {
             PersistenceManager.Instance.data.currentLives = currentLives;
             PersistenceManager.Instance.data.maxLives = maxLives;
         }
     }
-
     
     private void AddToInventory(PickUpData data)
     {
@@ -203,6 +194,7 @@ public class UIManager : MonoBehaviour
         if (!data.stackable)
         {
             CreateRow(data, 1, forceNewRow:true);
+            SaveInventoryToPersistence();
             return;
         }
 
@@ -227,7 +219,6 @@ public class UIManager : MonoBehaviour
         
         List<InventoryItemData> inventoryList = new List<InventoryItemData>();
         
-        //  items stackables
         foreach (var kvp in inventoryStacks)
         {
             if (kvp.Key != null && kvp.Value > 0)
@@ -240,7 +231,6 @@ public class UIManager : MonoBehaviour
             }
         }
         
-        //  items no-stackables
         foreach (var data in inventoryRows.Keys)
         {
             if (data != null && !inventoryStacks.ContainsKey(data))
@@ -254,9 +244,7 @@ public class UIManager : MonoBehaviour
         }
         
         PersistenceManager.Instance.data.inventoryItems = inventoryList;
-        Debug.Log($"<color=cyan>[UIManager]</color> Inventario guardado: {inventoryList.Count} items");
     }
-
 
     private void CreateRow(PickUpData data, int amount, bool forceNewRow = false)
     {
@@ -289,10 +277,8 @@ public class UIManager : MonoBehaviour
         return amount > 1 ? $"{nameitem} x{amount}" : nameitem;
     }
     
-    
     public bool TryConsumeItem(string itemName, out int itemValue)
     {
-        
         itemValue = 0;
 
         PickUpData foundStackable = null;
@@ -329,7 +315,6 @@ public class UIManager : MonoBehaviour
             }
             
             SaveInventoryToPersistence();
-
             return true;
         }
 
@@ -358,6 +343,4 @@ public class UIManager : MonoBehaviour
 
         return false;
     }
-
-
 }

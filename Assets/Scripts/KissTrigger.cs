@@ -17,7 +17,6 @@ public class KissTrigger : MonoBehaviour
     [SerializeField] private float endDelay = 5.0f;   
 
     [Header("Final")]
-    [SerializeField] private string winSceneName = "";   
     [SerializeField] private bool quitIfNoScene = true;  
     [SerializeField] private bool freezeIfEditor = true; 
 
@@ -75,11 +74,7 @@ public class KissTrigger : MonoBehaviour
 
     private void EndGame()
     {
-        if (!string.IsNullOrEmpty(winSceneName))
-        {
-            SceneManager.LoadScene(winSceneName);
-            return;
-        }
+        GameManager.Instance.LoadNextLevel();
 
 #if UNITY_EDITOR
         if (freezeIfEditor)
