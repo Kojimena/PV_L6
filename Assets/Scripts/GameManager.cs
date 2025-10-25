@@ -121,7 +121,7 @@ public class GameManager : MonoBehaviour
         AsyncOperation loadingOperation = SceneManager.LoadSceneAsync(1);
         yield return new WaitUntil(() => loadingOperation.isDone);
 
-        yield return new WaitForSeconds(0.3f);
+        // yield return new WaitForSeconds(3f);
 
         AsyncOperation targetOperation = SceneManager.LoadSceneAsync(sceneIndex);
         

@@ -7,7 +7,7 @@ public class LoadingScreen : MonoBehaviour
     public static LoadingScreen Instance { get; private set; }
 
     [Header("UI Elements")]
-    public Slider progressBar;
+    [SerializeField] Image progressImage;
     public TextMeshProUGUI loadingText;
     
 
@@ -19,14 +19,15 @@ public class LoadingScreen : MonoBehaviour
 
     public void UpdateProgress(float progress)
     {
-        if (progressBar != null)
+        if (progressImage)
         {
-            progressBar.value = progress;
+            progressImage.fillAmount = progress;
         }
-
-        if (loadingText != null)
+        
+        if (loadingText)
         {
-            loadingText.text = $"Cargando... {Mathf.RoundToInt(progress * 100)}%";
+            int percent = Mathf.RoundToInt(progress * 100f);
+            loadingText.text = $"Loading... {percent}%";
         }
     }
 }
