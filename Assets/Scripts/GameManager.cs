@@ -21,6 +21,7 @@ public class GameManager : MonoBehaviour
     public int currentLevel = 1;
     public int totalLevels = 3;
 
+
     void Awake()
     {
         if (_instance != null && _instance != this)
@@ -69,12 +70,38 @@ public class GameManager : MonoBehaviour
         if (currentLevel < totalLevels)
         {
             currentLevel++;
+            
+            ResetLevelProgress();
+            
             LoadSceneAsync(currentLevel + 1);
         }
         else
         {
             LoadWinScene();
         }
+    }
+
+    private void ResetLevelProgress()
+    {
+        if (PersistenceManager.Instance == null) return;
+
+        Debug.Log("<color=yellow>[GameManager]</color> Reseteando progreso para nuevo nivel...");
+
+        PersistenceManager.Instance.data.currentLives = PersistenceManager.Instance.data.maxLives;
+        Debug.Log($"<color=green>[GameManager]</color> Vidas reseteadas a {PersistenceManager.Instance.data.maxLives}");
+            
+        PersistenceManager.Instance.data.inventoryItems.Clear();
+        Debug.Log("<color=green>[GameManager]</color> Inventario limpiado");
+        
+
+        PersistenceManager.Instance.data.collectedItemIds.Clear();
+        
+        PersistenceManager.Instance.data.isDoorOpen = false;
+        
+        PersistenceManager.Instance.data.hasCheckpoint = false;
+        PersistenceManager.Instance.data.playerPosition = Vector3.zero;
+
+        PersistenceManager.Instance.SaveSessionData(PersistenceManager.Instance.data);
     }
 
     private void LoadWinScene()
@@ -120,8 +147,6 @@ public class GameManager : MonoBehaviour
     {
         AsyncOperation loadingOperation = SceneManager.LoadSceneAsync(1);
         yield return new WaitUntil(() => loadingOperation.isDone);
-
-        // yield return new WaitForSeconds(3f);
 
         AsyncOperation targetOperation = SceneManager.LoadSceneAsync(sceneIndex);
         
